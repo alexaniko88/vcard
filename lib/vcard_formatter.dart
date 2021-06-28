@@ -1,7 +1,6 @@
 library vcard;
 
 import 'package:intl/intl.dart';
-import 'package:meta/meta.dart';
 
 import 'vcard.dart';
 
@@ -11,11 +10,8 @@ class VCardFormatter {
   /// Encode string
   /// @param  {String}     value to encode
   /// @return {String}     encoded string
-  String e(String value) {
+  String e(String? value) {
     if ((value != null) && (value.isNotEmpty)) {
-//      if (value is String) {
-//        value = '' + value;
-//      }
       return value
           .replaceAll(RegExp(r'/\n/g'), '\\n')
           .replaceAll(RegExp(r'/,/g'), '\\,')
@@ -36,7 +32,12 @@ class VCardFormatter {
   /// @param  {String} mediaType       Media-type of photo (JPEG, PNG, GIF)
   /// @param  {String} isBase64        Whether or not is Base64 format
   /// @return {String}                 Formatted photo
-  String getFormattedPhoto(String photoType, String url, String mediaType, bool isBase64) {
+  String getFormattedPhoto(
+    String photoType,
+    String url,
+    String mediaType,
+    bool isBase64,
+  ) {
     String params;
 
     if (majorVersion >= 4) {
@@ -57,8 +58,10 @@ class VCardFormatter {
   /// @param  {String}         type address type
   /// @param {String}         Encoding prefix encodingPrefix
   /// @return {String}         Formatted address
-  String getFormattedAddress(
-      {@required MailingAddress address, @required String encodingPrefix}) {
+  String getFormattedAddress({
+    required MailingAddress address,
+    required String encodingPrefix,
+  }) {
     var formattedAddress = '';
 
     if (address.label.isNotEmpty ||
@@ -120,8 +123,8 @@ class VCardFormatter {
   /// Convert date to YYYYMMDD format
   /// @param  {Date}       date to encode
   /// @return {String}     encoded date
-  String formatVCardDate(DateTime date) {
-    return DateFormat("yyyyMMdd").format(date);
+  String formatVCardDate(DateTime? date) {
+    return date != null ? DateFormat("yyyyMMdd").format(date) : '';
   }
 
   String getFormattedString(VCard vCard) {
@@ -132,18 +135,14 @@ class VCardFormatter {
     formattedVCardString += 'VERSION:' + vCard.version + nl();
 
     String encodingPrefix = majorVersion >= 4 ? '' : ';CHARSET=UTF-8';
-    String formattedName = vCard.formattedName;
+    String formattedName = vCard.formattedName ?? '';
 
-    if (formattedName == null) {
-      formattedName = '';
-
-      [vCard.firstName, vCard.middleName, vCard.lastName].forEach((name) {
-        if ((name.isNotEmpty) && (formattedName.isNotEmpty)) {
-          formattedName += ' ';
-        }
-        formattedName += name;
-      });
-    }
+    [vCard.firstName, vCard.middleName, vCard.lastName].forEach((name) {
+      if ((name.isNotEmpty) && (formattedName.isNotEmpty)) {
+        formattedName += ' ';
+      }
+      formattedName += name;
+    });
 
     formattedVCardString +=
         'FN' + encodingPrefix + ':' + e(formattedName) + nl();
@@ -161,7 +160,7 @@ class VCardFormatter {
         e(vCard.nameSuffix) +
         nl();
 
-    if ((vCard.nickname != null) && (majorVersion >= 3)) {
+    if ((vCard.nickname.isNotEmpty) && (majorVersion >= 3)) {
       formattedVCardString +=
           'NICKNAME' + encodingPrefix + ':' + e(vCard.nickname) + nl();
     }
@@ -249,12 +248,20 @@ class VCardFormatter {
 
     if (vCard.logo.url != null) {
       formattedVCardString += getFormattedPhoto(
-          'LOGO', vCard.logo.url, vCard.logo.mediaType, vCard.logo.isBase64);
+        'LOGO',
+        vCard.logo.url!,
+        vCard.logo.mediaType ?? '',
+        vCard.logo.isBase64 ?? false,
+      );
     }
 
     if (vCard.photo.url != null) {
-      formattedVCardString += getFormattedPhoto('PHOTO', vCard.photo.url,
-          vCard.photo.mediaType, vCard.photo.isBase64);
+      formattedVCardString += getFormattedPhoto(
+        'PHOTO',
+        vCard.photo.url!,
+        vCard.photo.mediaType ?? '',
+        vCard.photo.isBase64 ?? false,
+      );
     }
 
     if (vCard.cellPhone != null) {
@@ -392,9 +399,9 @@ class VCardFormatter {
           'NOTE' + encodingPrefix + ':' + e(vCard.note) + nl();
     }
 
-    if (vCard.socialUrls != null) {
+    if (vCard.socialUrls.isNotEmpty) {
       vCard.socialUrls.forEach((key, value) {
-        if ((value != null) && (value.isNotEmpty)) {
+        if (value.isNotEmpty) {
           formattedVCardString += 'X-SOCIALPROFILE' +
               encodingPrefix +
               ';TYPE=' +
